@@ -760,7 +760,7 @@ func (r *rpcServer) OpenChannel(in *lnrpc.OpenChannelRequest,
 	updateChan, errChan := r.server.OpenChannel(
 		nodePubKey, localFundingAmt,
 		lnwire.NewMSatFromSatoshis(remoteInitialBalance),
-		minHtlc, feeRate, in.Private,
+		minHtlc, feeRate, in.Private, in.CsvDelay
 	)
 
 	var outpoint wire.OutPoint
@@ -879,7 +879,7 @@ func (r *rpcServer) OpenChannelSync(ctx context.Context,
 	updateChan, errChan := r.server.OpenChannel(
 		nodepubKey, localFundingAmt,
 		lnwire.NewMSatFromSatoshis(remoteInitialBalance),
-		minHtlc, feeRate, in.Private,
+		minHtlc, feeRate, in.Private, in.CsvDelay
 	)
 
 	select {

@@ -1738,6 +1738,8 @@ type OpenChannelRequest struct {
 	Private bool `protobuf:"varint,8,opt,name=private" json:"private,omitempty"`
 	// / The minimum value in millisatoshi we will require for incoming HTLCs on the channel.
 	MinHtlcMsat int64 `protobuf:"varint,9,opt,name=min_htlc_msat" json:"min_htlc_msat,omitempty"`
+	// / The CSV delay.
+	CsvDelay int64 `protobuf:"varint,10,opt,name=csv_delay" json:"csv_delay,omitempty"`
 }
 
 func (m *OpenChannelRequest) Reset()                    { *m = OpenChannelRequest{} }
@@ -1797,6 +1799,13 @@ func (m *OpenChannelRequest) GetPrivate() bool {
 func (m *OpenChannelRequest) GetMinHtlcMsat() int64 {
 	if m != nil {
 		return m.MinHtlcMsat
+	}
+	return 0
+}
+
+func (m *OpenChannelRequest) GetCsvDelay() int64 {
+	if m != nil {
+		return m.CsvDelay
 	}
 	return 0
 }

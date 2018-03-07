@@ -32,6 +32,16 @@ const (
 	// FundingOpen request for a channel that is above their current
 	// soft-limit.
 	ErrChanTooLarge ErrorCode = 3
+
+	// ErrChanTooLarge is returned by a remote peer that receives a
+	// FundingOpen request for a channel that is above their current
+	// soft-limit.
+	ErrSvDelayTooSmall ErrorCode = 4
+
+	// ErrChanTooLarge is returned by a remote peer that receives a
+	// FundingOpen request for a channel that is above their current
+	// soft-limit.
+	ErrCsvDelayTooLarge ErrorCode = 5
 )
 
 // String returns a human readable version of the target ErrorCode.
@@ -43,6 +53,10 @@ func (e ErrorCode) String() string {
 		return "Synchronizing blockchain"
 	case ErrChanTooLarge:
 		return "channel too large"
+	case ErrCsvDelayTooSmall:
+		return "Csv delay too small"
+	case ErrCsvDelayTooLarge:
+		return "Csv delay too large"
 	default:
 		return "unknown error"
 	}

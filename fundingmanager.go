@@ -833,6 +833,7 @@ func (f *fundingManager) handleFundingOpen(fmsg *fundingOpenMsg) {
 
 	msg := fmsg.msg
 	amt := msg.FundingAmount
+	csv_delay := msg.CsvDelay
 
 	// TODO(roasbeef): modify to only accept a _single_ pending channel per
 	// block unless white listed
@@ -865,7 +866,22 @@ func (f *fundingManager) handleFundingOpen(fmsg *fundingOpenMsg) {
 			lnwire.ErrChanTooLarge)
 		return
 	}
-
+	if csv_delay > 0 {
+		if csv_delay < minRemoteDelay {
+			f.failFundingFlow(
+				fmsg.peerAddress.IdentityKey, fmsg.msg.PendingChannelID,
+				lnwire.ErrorData{byte(lnwire.ErrCsvDelayTooSmall)},
+			)
+			return
+		}
+		if csv_delay > maxRemoteDelay {
+			f.failFundingFlow(
+				fmsg.peerAddress.IdentityKey, fmsg.msg.PendingChannelID,
+				lnwire.ErrorData{byte(lnwire.ErrCsvDelayTooLarge)},
+			)
+			return
+		}
+	}
 	// TODO(roasbeef): error if funding flow already ongoing
 	fndgLog.Infof("Recv'd fundingRequest(amt=%v, push=%v, delay=%v, "+
 		"pendingId=%x) from peer(%x)", amt, msg.PushAmount,
@@ -936,7 +952,11 @@ func (f *fundingManager) handleFundingOpen(fmsg *fundingOpenMsg) {
 
 	// Using the RequiredRemoteDelay closure, we'll compute the remote CSV
 	// delay we require given the total amount of funds within the channel.
+
 	remoteCsvDelay := f.cfg.RequiredRemoteDelay(amt)
+	if csv_delay > 0 {
+		remoteCsvDelay := csv_delay
+	}
 
 	// We'll also generate our required constraints for the remote party,
 	chanReserve := f.cfg.RequiredRemoteChanReserve(amt)
