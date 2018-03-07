@@ -36,7 +36,7 @@ const (
 	// ErrChanTooLarge is returned by a remote peer that receives a
 	// FundingOpen request for a channel that is above their current
 	// soft-limit.
-	ErrSvDelayTooSmall ErrorCode = 4
+	ErrCsvDelayTooSmall ErrorCode = 4
 
 	// ErrChanTooLarge is returned by a remote peer that receives a
 	// FundingOpen request for a channel that is above their current
