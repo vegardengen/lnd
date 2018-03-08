@@ -2441,9 +2441,15 @@ func (f *fundingManager) handleInitFundingMsg(msg *initFundingMsg) {
 	}
 	f.resMtx.Unlock()
 
-	// Using the RequiredRemoteDelay closure, we'll compute the remote CSV
-	// delay we require given the total amount of funds within the channel.
-	remoteCsvDelay := f.cfg.RequiredRemoteDelay(capacity)
+	// Using either provided value or the RequiredRemoteDelay closure, we'll
+	// compute the remote CSV delay we require given the total amount of 
+	// funds within the channel.
+	var remoteCsvDelay uint32
+	if msg.openChanReq.csvDelay > 0 {
+		remoteCsvDelay = msg.openChanReq.csvDelay
+	} else {
+		remoteCsvDelay = uint32(f.cfg.RequiredRemoteDelay(capacity))
+	}
 
 	// If no minimum HTLC value was specified, use the default one.
 	if minHtlc == 0 {
