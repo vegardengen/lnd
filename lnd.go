@@ -361,7 +361,7 @@ func lndMain() error {
 			}
 			return uint16(conf)
 		},
-		RequiredRemoteDelay: func(chanAmt btcutil.Amount) uint16 {
+		RequiredRemoteDelay: func(chanAmt btcutil.Amount, minCsvDelay uint32, maxCsvDelay uint32) uint16 {
 			// We scale the remote CSV delay (the time the
 			// remote have to claim funds in case of a unilateral
 			// close) linearly from minRemoteDelay blocks
@@ -373,15 +373,21 @@ func lndMain() error {
 			// a default value for the remote delay, we
 			// use it.
 			defaultDelay := uint16(cfg.Bitcoin.DefaultRemoteDelay)
-			if defaultDelay > 0 {
+			if (minCsvDelay == 0) && (maxCsvDelay == 0) && (defaultDelay > 0) {
 				return defaultDelay
 			}
 
 			// If not we scale according to channel size.
 			delay := uint16(maxRemoteDelay *
 				chanAmt / maxFundingAmount)
+			if (minCsvDelay > 0) && (delay < uint16(minCsvDelay)) {
+				delay = uint16(minCsvDelay)
+			}
 			if delay < minRemoteDelay {
 				delay = minRemoteDelay
+			}
+			if (maxCsvDelay > 0) && (delay > uint16(maxCsvDelay)) {
+				delay = uint16(maxCsvDelay)
 			}
 			if delay > maxRemoteDelay {
 				delay = maxRemoteDelay

@@ -1669,7 +1669,9 @@ type openChanReq struct {
 
 	minHtlc lnwire.MilliSatoshi
 
-	csvDelay uint32
+	minCsvDelay uint32
+
+	maxCsvDelay uint32
 
 	// TODO(roasbeef): add ability to specify channel constraints as well
 
@@ -1794,7 +1796,7 @@ func (s *server) OpenChannel(nodeKey *btcec.PublicKey,
 	localAmt btcutil.Amount, pushAmt lnwire.MilliSatoshi,
 	minHtlc lnwire.MilliSatoshi,
 	fundingFeePerVSize lnwallet.SatPerVByte,
-	private bool, csvDelay uint32) (chan *lnrpc.OpenStatusUpdate, chan error) {
+	private bool, minCsvDelay uint32, maxCsvDelay uint32) (chan *lnrpc.OpenStatusUpdate, chan error) {
 
 	updateChan := make(chan *lnrpc.OpenStatusUpdate, 1)
 	errChan := make(chan error, 1)
@@ -1848,7 +1850,8 @@ func (s *server) OpenChannel(nodeKey *btcec.PublicKey,
 		pushAmt:            pushAmt,
 		private:            private,
 		minHtlc:            minHtlc,
-		csvDelay:           csvDelay,
+		minCsvDelay:           minCsvDelay,
+		maxCsvDelay:           maxCsvDelay,
 		updates:            updateChan,
 		err:                errChan,
 	}

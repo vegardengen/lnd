@@ -235,7 +235,7 @@ type fundingConfig struct {
 	// party. Naturally a larger channel should require a higher CSV delay
 	// in order to give us more time to claim funds in the case of a
 	// contract breach.
-	RequiredRemoteDelay func(btcutil.Amount) uint16
+	RequiredRemoteDelay func(btcutil.Amount, uint32, uint32) uint16
 
 	// RequiredRemoteChanReserve is a function closure that, given the
 	// channel capacity, will return an appropriate amount for the remote
@@ -936,7 +936,7 @@ func (f *fundingManager) handleFundingOpen(fmsg *fundingOpenMsg) {
 
 	// Using the RequiredRemoteDelay closure, we'll compute the remote CSV
 	// delay we require given the total amount of funds within the channel.
-	remoteCsvDelay := f.cfg.RequiredRemoteDelay(amt)
+	remoteCsvDelay := f.cfg.RequiredRemoteDelay(amt, 0, 0)
 
 	// We'll also generate our required constraints for the remote party,
 	chanReserve := f.cfg.RequiredRemoteChanReserve(amt)
@@ -1097,7 +1097,7 @@ func (f *fundingManager) handleFundingAccept(fmsg *fundingAcceptMsg) {
 			},
 		},
 	}
-	remoteContribution.CsvDelay = f.cfg.RequiredRemoteDelay(resCtx.chanAmt)
+	remoteContribution.CsvDelay = f.cfg.RequiredRemoteDelay(resCtx.chanAmt, 0, 0)
 	err = resCtx.reservation.ProcessContribution(remoteContribution)
 	if err != nil {
 		fndgLog.Errorf("Unable to process contribution from %v: %v",
@@ -2375,6 +2375,8 @@ func (f *fundingManager) handleInitFundingMsg(msg *initFundingMsg) {
 		capacity     = localAmt + remoteAmt
 		ourDustLimit = lnwallet.DefaultDustLimit()
 		minHtlc      = msg.minHtlc
+		min_csv_delay = msg.openChanReq.minCsvDelay
+		max_csv_delay = msg.openChanReq.maxCsvDelay
 	)
 
 	fndgLog.Infof("Initiating fundingRequest(localAmt=%v, remoteAmt=%v, "+
@@ -2444,12 +2446,7 @@ func (f *fundingManager) handleInitFundingMsg(msg *initFundingMsg) {
 	// Using either provided value or the RequiredRemoteDelay closure, we'll
 	// compute the remote CSV delay we require given the total amount of 
 	// funds within the channel.
-	var remoteCsvDelay uint32
-	if msg.openChanReq.csvDelay > 0 {
-		remoteCsvDelay = msg.openChanReq.csvDelay
-	} else {
-		remoteCsvDelay = uint32(f.cfg.RequiredRemoteDelay(capacity))
-	}
+	remoteCsvDelay := uint32(f.cfg.RequiredRemoteDelay(capacity,min_csv_delay,max_csv_delay))
 
 	// If no minimum HTLC value was specified, use the default one.
 	if minHtlc == 0 {

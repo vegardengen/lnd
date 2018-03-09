@@ -437,8 +437,12 @@ var openChannelCommand = cli.Command{
 				"for incoming HTLCs on the channel",
 		},
 		cli.Int64Flag{
-			Name: "csv_delay",
-			Usage: "(optional) the CSV delay we will require (in blocks)",
+			Name: "min_csv_delay",
+			Usage: "(optional) the lower bound of the CSV delay we will require (in blocks)",
+		},
+		cli.Int64Flag{
+			Name: "max_csv_delay",
+			Usage: "(optional) the upper bound of the CSV delay we will require (in blocks)",
 		},
 	},
 	Action: actionDecorator(openChannel),
@@ -463,7 +467,8 @@ func openChannel(ctx *cli.Context) error {
 		TargetConf:  int32(ctx.Int64("conf_target")),
 		SatPerByte:  ctx.Int64("sat_per_byte"),
 		MinHtlcMsat: ctx.Int64("min_htlc_msat"),
-		CsvDelay: ctx.Int64("csv_delay"),
+		MinCsvDelay: ctx.Int64("min_csv_delay"),
+		MaxCsvDelay: ctx.Int64("max_csv_delay"),
 	}
 
 	switch {
