@@ -1710,11 +1710,14 @@ func (s *server) ConnectToPeer(addr *lnwire.NetAddress, perm bool) error {
 	// Peer was not found, continue to pursue connection with peer.
 
 	// If there's already a pending connection request for this pubkey,
-	// then we ignore this request to ensure we don't create a redundant
-	// connection.
-	if _, ok := s.persistentConnReqs[targetPub]; ok {
-		s.mu.Unlock()
-		return fmt.Errorf("connection attempt to %v is pending", addr)
+	// remove the pending connection requests.
+	if connReqs, ok := s.persistentConnReqs[targetPub]; ok {
+		for _, pConnReq := range connReqs {
+			if pConnReq != nil {
+				s.connMgr.Remove(pConnReq.ID())
+			}
+		}
+		delete(s.persistentConnReqs, targetPub)
 	}
 
 	// If there's not already a pending or active connection to this node,
