@@ -1292,6 +1292,13 @@ func (s *server) peerTerminationWatcher(p *peer) {
 	// in question.
 	s.removePeer(p)
 
+	// Don't try to 
+	if !p.inbound {
+		srvrLog.Debugf("Not Scheduling connection re-establishment to "+
+			"inbound peer %v", p)
+		return
+	}
+
 	// Next, check to see if this is a persistent peer or not.
 	pubStr := string(p.addr.IdentityKey.SerializeCompressed())
 	_, ok := s.persistentPeers[pubStr]
