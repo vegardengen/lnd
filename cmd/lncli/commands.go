@@ -2793,3 +2793,49 @@ func forwardingHistory(ctx *cli.Context) error {
 	printRespJSON(resp)
 	return nil
 }
+
+var addExternalIPCommand = cli.Command{
+	Name:      "addexternalip",
+	Usage:     "Add a new URI with the given IP to the node announcement",
+	ArgsUsage: "address",
+	Description: `
+	Add an external IP address, for example if LND is running on a site
+	with dynamic IP address. This allows for auto-updating IP address
+	without restarting the node.
+	`,
+	Flags: []cli.Flag{
+		cli.StringFlag{
+			Name:  "address",
+			Usage: "The <host:port> to be added. Port is optional.",
+		},
+	},
+	Action: actionDecorator(addExternalIP),
+}
+
+func addExternalIP(ctx *cli.Context) error {
+	ctxb := context.Background()
+	client, cleanUp := getClient(ctx)
+	defer cleanUp()
+
+	var (
+		address string
+	)
+	args := ctx.Args()
+
+	switch {
+	case ctx.IsSet("address"):
+		address = ctx.String("address")
+	case args.Present():
+		address = args.First()
+	default:
+		return fmt.Errorf("address argument missing")
+	}
+	req := &lnrpc.AddExternalIPRequest{
+		Addr: address,
+	}
+	_, err := client.AddExternalIP(ctxb, req)
+	if err != nil {
+		return err
+	}
+	return nil
+}

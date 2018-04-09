@@ -260,6 +260,14 @@ var (
 			Entity: "info",
 			Action: "read",
 		}},
+		"/lnrpc.Lightning/AddExternalIP": {{
+			Entity: "info",
+			Action: "write",
+		}},
+		"/lnrpc.Lightning/DeleteExternalIP": {{
+			Entity: "info",
+			Action: "write",
+		}},
 		"/lnrpc.Lightning/StopDaemon": {{
 			Entity: "info",
 			Action: "write",
@@ -1248,6 +1256,43 @@ func (r *rpcServer) GetInfo(ctx context.Context,
 		Alias:               nodeAnn.Alias.String(),
 		BestHeaderTimestamp: int64(bestHeaderTimestamp),
 	}, nil
+}
+
+// AddExternalIP Adds an externally announced IP address dynamically.
+func (r *rpcServer) AddExternalIP(ctx context.Context,
+	in *lnrpc.AddExternalIPRequest) (*lnrpc.AddExternalIPResponse, error) {
+
+	rpcsLog.Tracef("[addexternalip] request")
+	_, err := r.server.genNodeAnnouncement(false)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve current fully signed "+
+			"node announcement: %v", err)
+	}
+	var addr string
+	_, _, err = net.SplitHostPort(in.Addr)
+	if err != nil {
+		addr = net.JoinHostPort(in.Addr, strconv.Itoa(defaultPeerPort))
+	} else {
+		addr = in.Addr
+	}
+
+	lnAddr, err := cfg.net.ResolveTCPAddr("tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+	r.server.currentNodeAnn.Addresses = append(r.server.currentNodeAnn.Addresses, lnAddr)
+	*r.server.currentNodeAnn, _ = r.server.genNodeAnnouncement(true)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve current fully signed "+
+			"node announcement: %v", err)
+	}
+	nodeAnn, _ := r.server.genNodeAnnouncement(false)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve current fully signed "+
+			"node announcement: %v", err)
+	}
+	rpcsLog.Debugf("New NodeAnnouncement with Timestamp: %v", time.Unix(int64(nodeAnn.Timestamp), 0))
+	return &lnrpc.AddExternalIPResponse{}, nil
 }
 
 // ListPeers returns a verbose listing of all currently active peers.

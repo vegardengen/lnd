@@ -224,6 +224,33 @@
         ]
       }
     },
+    "/v1/externalip": {
+      "post": {
+        "summary": "* lncli: `addexternalip`\nAddExternalIP allows the called to dynamically add node URIs, for example\nwhen running with a dynamic IP address. No values are returned.",
+        "operationId": "AddExternalIP",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/lnrpcAddExternalIPResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/lnrpcAddExternalIPRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
     "/v1/fees": {
       "get": {
         "summary": "* lncli: `feereport`\nFeeReport allows the caller to obtain a report detailing the current fee\nschedule enforced by the node globally for each channel.",
@@ -892,6 +919,17 @@
           "description": "*\nThe required number of satoshis per kilo-weight that the requester will\npay at all times, for both the funding transaction and commitment\ntransaction. This value can later be updated once the channel is open."
         }
       }
+    },
+    "lnrpcAddExternalIPRequest": {
+      "type": "object",
+      "properties": {
+        "addr": {
+          "type": "string"
+        }
+      }
+    },
+    "lnrpcAddExternalIPResponse": {
+      "type": "object"
     },
     "lnrpcAddInvoiceResponse": {
       "type": "object",
